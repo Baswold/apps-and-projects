@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Ecosystem Terrarium - Living Digital Ecosystem</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🌿 Virtual Ecosystem Terrarium</h1>
+            <div class="time-display">
+                <span id="currentTime">Day 1 - 06:00</span>
+                <span id="season">Spring</span>
+            </div>
+        </header>
+
+        <!-- Main Terrarium View -->
+        <div class="main-content">
+            <div class="terrarium-container">
+                <canvas id="terrariumCanvas"></canvas>
+
+                <!-- Weather Effects Overlay -->
+                <div id="weatherOverlay" class="weather-overlay"></div>
+
+                <!-- Day/Night Overlay -->
+                <div id="lightingOverlay" class="lighting-overlay"></div>
+
+                <!-- Camera Controls -->
+                <div class="camera-controls">
+                    <button id="zoomIn" title="Zoom In">🔍+</button>
+                    <button id="zoomOut" title="Zoom Out">🔍-</button>
+                    <button id="resetCamera" title="Reset View">⟲</button>
+                    <button id="followMode" title="Follow Creature">📹</button>
+                </div>
+
+                <!-- Time Controls -->
+                <div class="time-controls">
+                    <button id="pauseTime" class="active">⏸️</button>
+                    <button id="normalSpeed">▶️ 1x</button>
+                    <button id="fastSpeed">⏩ 5x</button>
+                    <button id="ultraSpeed">⏭️ 10x</button>
+                </div>
+            </div>
+
+            <!-- Side Panel -->
+            <aside class="side-panel">
+                <!-- Ecosystem Stats -->
+                <section class="panel-section">
+                    <h2>🌍 Ecosystem Health</h2>
+                    <div class="health-bar">
+                        <div id="healthBar" class="health-fill"></div>
+                        <span id="healthScore">100%</span>
+                    </div>
+                    <div class="stat-grid">
+                        <div class="stat">
+                            <span class="stat-label">🌡️ Temperature</span>
+                            <span id="temperature">72°F</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">💧 Humidity</span>
+                            <span id="humidity">65%</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">🌱 Soil Quality</span>
+                            <span id="soilQuality">85%</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">☀️ Light Level</span>
+                            <span id="lightLevel">Moderate</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Population -->
+                <section class="panel-section">
+                    <h2>👥 Population</h2>
+                    <div id="populationList" class="population-list"></div>
+                </section>
+
+                <!-- Weather Control -->
+                <section class="panel-section">
+                    <h2>⛅ Weather System</h2>
+                    <div class="weather-buttons">
+                        <button class="weather-btn" data-weather="sunny">☀️ Sunny</button>
+                        <button class="weather-btn" data-weather="rainy">🌧️ Rainy</button>
+                        <button class="weather-btn" data-weather="foggy">🌫️ Foggy</button>
+                        <button class="weather-btn" data-weather="stormy">⛈️ Stormy</button>
+                    </div>
+                    <p id="weatherDescription" class="weather-desc">Clear skies</p>
+                </section>
+
+                <!-- Actions -->
+                <section class="panel-section">
+                    <h2>🛠️ Actions</h2>
+                    <div class="action-grid">
+                        <button id="addPlant" class="action-btn">🌱 Plant Seed</button>
+                        <button id="addWater" class="action-btn">💧 Water</button>
+                        <button id="addInsect" class="action-btn">🦋 Add Insect</button>
+                        <button id="addAnimal" class="action-btn">🐛 Add Creature</button>
+                        <button id="feedCreatures" class="action-btn">🍃 Scatter Food</button>
+                        <button id="cleanTerrain" class="action-btn">🧹 Clean</button>
+                    </div>
+                </section>
+
+                <!-- Food Web -->
+                <section class="panel-section">
+                    <h2>🕸️ Food Web</h2>
+                    <canvas id="foodWebCanvas" width="280" height="200"></canvas>
+                </section>
+
+                <!-- Achievements -->
+                <section class="panel-section">
+                    <h2>🏆 Achievements</h2>
+                    <div id="achievementsList" class="achievements-list"></div>
+                </section>
+
+                <!-- Time-lapse Export -->
+                <section class="panel-section">
+                    <h2>🎬 Time-lapse</h2>
+                    <button id="startRecording" class="action-btn">● Start Recording</button>
+                    <button id="stopRecording" class="action-btn" disabled>⏹️ Stop & Export</button>
+                    <div id="recordingStatus"></div>
+                </section>
+            </aside>
+        </div>
+
+        <!-- Audio System (hidden) -->
+        <div id="audioSystem" class="hidden"></div>
+
+        <!-- Info Modal -->
+        <div id="infoModal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Creature Details</h2>
+                <div id="modalContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
