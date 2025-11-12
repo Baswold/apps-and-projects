@@ -220,70 +220,33 @@ function updateStatusBar() {
     palette: '⌘'
   };
 
-  const modeColors = {
-    welcome: '{#6C63FF-fg}',
-    terminal: '{#4ECDC4-fg}',
-    editor: '{#FF6584-fg}',
-    palette: '{#FFD93D-fg}'
-  };
-
-  const icon = modeIcons[mode] || ICONS.terminal;
-  const color = modeColors[mode] || '{white-fg}';
-
-  // Left side: Mode and context
-  let left = ` ${color}${icon} ${mode.toUpperCase()}{/}`;
+  // Clean, minimal status bar - only show essential info
+  let left = ` {#565F89-fg}${mode.toLowerCase()}{/}`;
 
   if (mode === 'editor' && currentFile) {
     const fileName = path.basename(currentFile);
-    left += ` {#565F89-fg}│{/} {#7AA2F7-fg}${ICONS.file} ${fileName}{/}`;
+    left += ` {#565F89-fg}·{/} {#A9B1D6-fg}${fileName}{/}`;
   }
 
   if (multiLineMode) {
-    left += ` {#FFD93D-fg}${ICONS.multiline} MULTI-LINE{/}`;
+    left += ` {#565F89-fg}·{/} {#A9B1D6-fg}multi-line{/}`;
   }
 
-  // Command running indicator
+  // Simple command indicator (no heavy spinner)
   if (commandRunning && mode === 'terminal') {
-    const spinner = SPINNERS[spinnerFrame % SPINNERS.length];
-    const spinnerColor = SPINNER_COLORS[spinnerColorIndex % SPINNER_COLORS.length];
-    const elapsed = formatElapsedTime(commandElapsedTime);
-    left += ` {#565F89-fg}│{/} {${spinnerColor}-fg}${spinner}{/} {#A9B1D6-fg}${currentCommand.slice(0, 20)}${currentCommand.length > 20 ? '...' : ''}{/} {#565F89-fg}${elapsed}{/}`;
+    left += ` {#565F89-fg}·{/} {#A9B1D6-fg}running{/}`;
   }
 
-  // Center: Hints (or command status)
-  let centerText;
-  if (commandRunning && mode === 'terminal') {
-    centerText = '{#FFD93D-fg}⚡ Command executing...{/}';
-  } else {
-    const hints = {
-      terminal: '{#565F89-fg}Tab:Autocomplete  ⇧↵:MultiLine  ⌘P:Palette{/}',
-      editor: '{#565F89-fg}^S:Save  ^O:Open  F3:Terminal{/}',
-      welcome: '{#565F89-fg}Press any key to start...{/}',
-      palette: '{#565F89-fg}Type to search, ↵ to execute{/}'
-    };
-    centerText = hints[mode] || '';
-  }
-
-  // Right side: Stats and time with ATTENTION TO DETAIL
   const time = new Date().toLocaleTimeString('en-US', { hour12: false });
-  const historyCount = commandHistory.length;
-  const sessionDuration = formatSessionDuration(Date.now() - sessionStartTime);
-
-  // Typing indicator - fades after 2 seconds
-  const typingIndicator = isTyping ? ' {#4ECDC4-fg}✎{/}' : '';
-
-  const right = ` {#565F89-fg}${ICONS.history}${historyCount}  ⏱${sessionDuration}${typingIndicator}  ${time}{/} `;
+  const right = ` {#565F89-fg}${time}{/} `;
 
   // Calculate spacing
   const strippedLeft = stripAnsi(left);
-  const strippedCenter = stripAnsi(centerText);
   const strippedRight = stripAnsi(right);
   const totalWidth = screen.width;
-  const centerStart = Math.floor((totalWidth - strippedCenter.length) / 2);
-  const centerPadding = Math.max(0, centerStart - strippedLeft.length);
-  const rightPadding = Math.max(0, totalWidth - strippedLeft.length - centerPadding - strippedCenter.length - strippedRight.length);
+  const padding = Math.max(0, totalWidth - strippedLeft.length - strippedRight.length);
 
-  statusBar.setContent(left + ' '.repeat(centerPadding) + centerText + ' '.repeat(rightPadding) + right);
+  statusBar.setContent(left + ' '.repeat(padding) + right);
   screen.render();
 }
 
@@ -337,23 +300,13 @@ function getTimeBasedGreeting() {
   }
 }
 
-// Update status bar and spinner animation
+// Update status bar (clean, no animations)
 setInterval(() => {
   if (commandRunning) {
-    spinnerFrame++;
-    if (spinnerFrame % 3 === 0) {
-      spinnerColorIndex++;
-    }
     commandElapsedTime = Date.now() - commandStartTime;
-
-    // Pulsing border effect - cycles through purple shades
-    const pulseColors = ['#6C63FF', '#7AA2F7', '#6C63FF', '#5A52E0'];
-    const pulseIndex = Math.floor(spinnerFrame / 2) % pulseColors.length;
-    terminalBox.style.border.fg = pulseColors[pulseIndex];
-    screen.render();
   }
   updateStatusBar();
-}, 150); // 150ms for smooth spinner animation
+}, 1000); // Update every second
 
 // ═══════════════════════════════════════════════════════════════════════════
 // BEAUTIFUL WELCOME SCREEN
@@ -372,42 +325,30 @@ const welcomeScreen = blessed.box({
   tags: true,
   border: {
     type: 'line',
-    fg: '#6C63FF'
+    fg: '#3B4261'
   }
 });
 
-// Dynamic welcome content with time-based greeting - ATTENTION TO DETAIL!
+// Clean, minimal welcome screen
 function getWelcomeContent() {
   const greeting = getTimeBasedGreeting();
   return `
-{center}{#6C63FF-fg}╔═══════════════════════════════════════════════════════════╗{/}
-{#6C63FF-fg}║{/}                                                           {#6C63FF-fg}║{/}
-{#6C63FF-fg}║{/}            {bold}{#FF6584-fg}✨  SMART TERMINAL  ✨{/}{/}                    {#6C63FF-fg}║{/}
-{#6C63FF-fg}║{/}                                                           {#6C63FF-fg}║{/}
-{#6C63FF-fg}║{/}        {#A9B1D6-fg}Beautiful. Intelligent. Powerful.{/}               {#6C63FF-fg}║{/}
-{#6C63FF-fg}║{/}           {#95E1D3-fg}${greeting}!{/}                                 {#6C63FF-fg}║{/}
-{#6C63FF-fg}╚═══════════════════════════════════════════════════════════╝{/}{/center}
 
-{center}{#4ECDC4-fg}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{/}{/center}
 
-{center}{bold}{#F8F8F2-fg}KEY FEATURES{/}{/}{/center}
+{center}{bold}{#F8F8F2-fg}Smart Terminal{/}{/}{/center}
 
-  {#7AA2F7-fg}${ICONS.AI} AI Autocomplete{/}      {#565F89-fg}→{/}  Context-aware suggestions as you type
-  {#95E1D3-fg}${ICONS.prompt} Mouse Support{/}        {#565F89-fg}→{/}  Click anywhere to position cursor
-  {#BB9AF7-fg}${ICONS.multiline} Multi-line Mode{/}      {#565F89-fg}→{/}  Write scripts with Shift+Enter
-  {#FF6584-fg}${ICONS.editor} Integrated Editor{/}   {#565F89-fg}→{/}  Full-featured text editor built-in
-  {#FFD93D-fg}⚡ Command Palette{/}     {#565F89-fg}→{/}  Quick actions with Cmd+P
+{center}{#565F89-fg}${greeting}.{/}{/center}
 
-{center}{#4ECDC4-fg}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{/}{/center}
 
-{center}{bold}{#F8F8F2-fg}QUICK START{/}{/}{/center}
+{center}{#A9B1D6-fg}AI-powered terminal with mouse support and intelligent autocomplete{/}{/center}
 
-  {#6C63FF-fg}F1{/}  Help          {#6C63FF-fg}F2{/}  Editor         {#6C63FF-fg}F3{/}  Terminal
-  {#6C63FF-fg}⌘P{/}  Command Palette                 {#6C63FF-fg}^Q{/}  Quit
 
-{center}{#4ECDC4-fg}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{/}{/center}
 
-{center}{#565F89-fg}Press any key to begin your journey...{/}{/center}
+{center}{#565F89-fg}F1{/}  Help     {#565F89-fg}F2{/}  Editor     {#565F89-fg}F3{/}  Terminal     {#565F89-fg}⌘P{/}  Palette{/center}
+
+
+
+{center}{#565F89-fg}Press any key to start{/}{/center}
 `;
 }
 
@@ -426,13 +367,10 @@ const terminalBox = blessed.box({
   scrollable: true,
   alwaysScroll: true,
   scrollbar: {
-    ch: '█',
+    ch: '│',
     style: {
-      bg: '#24283B',
-      fg: '#6C63FF'
-    },
-    track: {
-      bg: '#1A1B26'
+      bg: '#1A1B26',
+      fg: '#3B4261'
     }
   },
   mouse: true,
@@ -446,10 +384,6 @@ const terminalBox = blessed.box({
   border: {
     type: 'line',
     fg: '#3B4261'
-  },
-  label: {
-    text: ` ${ICONS.terminal} TERMINAL `,
-    side: 'left'
   },
   hidden: true
 });
@@ -465,40 +399,36 @@ const autocompletePopup = blessed.list({
   width: '60%',
   height: '60%',
   style: {
-    bg: '#24283B',
-    fg: '#F8F8F2',
+    bg: '#1A1B26',
+    fg: '#A9B1D6',
     border: {
-      fg: '#6C63FF'
+      fg: '#3B4261'
     },
     selected: {
-      bg: '#6C63FF',
-      fg: '#F8F8F2',
-      bold: true
+      bg: '#3B4261',
+      fg: '#F8F8F2'
     },
     item: {
       hover: {
-        bg: '#2F3549'
+        bg: '#24283B'
       }
     }
   },
   border: {
     type: 'line',
-    fg: '#6C63FF'
+    fg: '#3B4261'
   },
-  label: {
-    text: ` ${ICONS.AI} AI SUGGESTIONS `,
-    side: 'left'
-  },
+  label: ' Suggestions ',
   keys: true,
   vi: false,
   mouse: true,
   hidden: true,
   tags: true,
   scrollbar: {
-    ch: '█',
+    ch: '│',
     style: {
-      bg: '#24283B',
-      fg: '#6C63FF'
+      bg: '#1A1B26',
+      fg: '#3B4261'
     }
   }
 });
@@ -514,40 +444,35 @@ const commandPalette = blessed.list({
   width: '60%',
   height: '50%',
   style: {
-    bg: '#24283B',
-    fg: '#F8F8F2',
+    bg: '#1A1B26',
+    fg: '#A9B1D6',
     border: {
-      fg: '#FFD93D'
+      fg: '#3B4261'
     },
     selected: {
-      bg: '#FFD93D',
-      fg: '#1A1B26',
-      bold: true
+      bg: '#3B4261',
+      fg: '#F8F8F2'
     }
   },
   border: {
     type: 'line',
-    fg: '#FFD93D'
+    fg: '#3B4261'
   },
-  label: {
-    text: ' ⚡ COMMAND PALETTE ',
-    side: 'left'
-  },
+  label: ' Command Palette ',
   keys: true,
   vi: false,
   mouse: true,
   hidden: true,
   tags: true,
   items: [
-    `{#4ECDC4-fg}${ICONS.terminal}{/}  Switch to Terminal Mode`,
-    `{#FF6584-fg}${ICONS.editor}{/}  Switch to Editor Mode`,
-    `{#7AA2F7-fg}${ICONS.file}{/}  Open File...`,
-    `{#95E1D3-fg}${ICONS.saved}{/}  Save Current File`,
-    `{#BB9AF7-fg}${ICONS.history}{/}  View Command History`,
-    `{#9ECE6A-fg}${ICONS.settings}{/}  Settings & Experimental Features`,
-    `{#FFD93D-fg}${ICONS.info}{/}  Show Help`,
-    `{#FF6B6B-fg}${ICONS.error}{/}  Clear Terminal`,
-    `{#565F89-fg}⌘{/}  Close Palette`
+    'Switch to Terminal',
+    'Switch to Editor',
+    'Open File',
+    'Save File',
+    'View History',
+    'Settings',
+    'Help',
+    'Clear Terminal'
   ]
 });
 
@@ -727,15 +652,11 @@ const editorBox = blessed.textarea({
     type: 'line',
     fg: '#3B4261'
   },
-  label: {
-    text: ` ${ICONS.editor} EDITOR `,
-    side: 'left'
-  },
   scrollbar: {
-    ch: '█',
+    ch: '│',
     style: {
-      bg: '#24283B',
-      fg: '#FF6584'
+      bg: '#1A1B26',
+      fg: '#3B4261'
     }
   },
   hidden: true,
@@ -751,7 +672,7 @@ function updateEditorLineNumbers() {
   for (let i = 1; i <= lines.length; i++) {
     const num = i.toString().padStart(4, ' ');
     if (i === lines.length) {
-      lineNumbers += `{#6C63FF-fg}${num}{/}`;
+      lineNumbers += `{#565F89-fg}${num}{/}`;
     } else {
       lineNumbers += `{#565F89-fg}${num}{/}\n`;
     }
@@ -811,40 +732,7 @@ ptyProcess.onData((data) => {
         commandRunning = false;
         totalCommands++;
 
-        // ATTENTION TO DETAIL: Success vs Error border pulse!
-        const recentOutput = terminalOutput.slice(-500);
-        const hadError = errorPatterns.test(recentOutput);
-
-        if (hadError) {
-          // RED PULSE for errors
-          let pulseCount = 0;
-          const errorPulse = setInterval(() => {
-            terminalBox.style.border.fg = pulseCount % 2 === 0 ? '#FF6B6B' : '#FF4444';
-            screen.render();
-            pulseCount++;
-            if (pulseCount > 6) {
-              clearInterval(errorPulse);
-              terminalBox.style.border.fg = '#3B4261';
-              screen.render();
-            }
-          }, 150);
-          SOUNDS.error();
-        } else {
-          // GREEN PULSE for success
-          let pulseCount = 0;
-          const successPulse = setInterval(() => {
-            terminalBox.style.border.fg = pulseCount % 2 === 0 ? '#95E1D3' : '#7BCFB8';
-            screen.render();
-            pulseCount++;
-            if (pulseCount > 4) {
-              clearInterval(successPulse);
-              terminalBox.style.border.fg = '#3B4261';
-              screen.render();
-            }
-          }, 150);
-          SOUNDS.success();
-        }
-
+        // Clean, simple completion
         updateTerminalDisplay();
       }
     }, 300);
@@ -1055,41 +943,39 @@ function showAutocomplete() {
   const suggestions = getAutocompleteSuggestions(currentInput);
 
   if (suggestions.length === 0) {
-    // Show helpful message
+    // Show simple message
     const noResults = blessed.box({
       parent: screen,
       top: 'center',
       left: 'center',
-      width: 50,
-      height: 5,
+      width: 40,
+      height: 3,
       border: 'line',
       style: {
-        bg: '#24283B',
-        fg: '#A9B1D6',
+        bg: '#1A1B26',
+        fg: '#565F89',
         border: {
-          fg: '#565F89'
+          fg: '#3B4261'
         }
       },
-      content: `{center}{#565F89-fg}${ICONS.info} No suggestions found{/}\n\nKeep typing to learn...{/center}`,
+      content: `{center}No suggestions{/center}`,
       tags: true
     });
 
     setTimeout(() => {
       noResults.destroy();
       screen.render();
-    }, 1500);
+    }, 1000);
 
     return;
   }
 
   completionSuggestions = suggestions;
 
-  // Format suggestions beautifully
+  // Clean, simple suggestions
   const items = suggestions.map(s => {
-    const icon = s.icon || ICONS.command;
-    const color = s.color || '#F8F8F2';
-    const desc = s.description ? `{#565F89-fg}${s.description}{/}` : '';
-    return `{${color}-fg}${icon}{/}  {bold}${s.text}{/}  ${desc}`;
+    const desc = s.description ? `  {#565F89-fg}${s.description}{/}` : '';
+    return `${s.text}${desc}`;
   });
 
   autocompletePopup.setItems(items);
@@ -1132,7 +1018,6 @@ function switchMode(newMode) {
     case 'terminal':
       terminalBox.show();
       terminalBox.focus();
-      terminalBox.style.border.fg = '#6C63FF';
       updateTerminalDisplay();
       break;
 
@@ -1140,7 +1025,6 @@ function switchMode(newMode) {
       editorLineNumbers.show();
       editorBox.show();
       editorBox.focus();
-      editorBox.style.border.fg = '#FF6584';
       updateEditorLineNumbers();
       break;
 
@@ -1215,11 +1099,6 @@ terminalBox.key(['enter'], () => {
     currentCommand = cmdToExecute;
     commandStartTime = Date.now();
     commandElapsedTime = 0;
-    spinnerFrame = 0;
-    spinnerColorIndex = 0;
-
-    // Add pulsing border effect
-    terminalBox.style.border.fg = '#6C63FF';
   }
 
   updateTerminalDisplay();
@@ -1634,7 +1513,7 @@ function showHelpPanel() {
       type: 'line',
       fg: '#6C63FF'
     },
-    label: ` ${ICONS.info} SMART TERMINAL - HELP `,
+    label: ' Help ',
     scrollable: true,
     alwaysScroll: true,
     keys: true,
@@ -1642,85 +1521,60 @@ function showHelpPanel() {
     mouse: true,
     style: {
       bg: '#1A1B26',
-      fg: '#F8F8F2',
+      fg: '#A9B1D6',
       border: {
-        fg: '#6C63FF'
+        fg: '#3B4261'
       }
     },
     scrollbar: {
-      ch: '█',
+      ch: '│',
       style: {
-        bg: '#24283B',
-        fg: '#6C63FF'
+        bg: '#1A1B26',
+        fg: '#3B4261'
       }
     },
     tags: true,
     content: `
-{center}{bold}{#6C63FF-fg}✨ SMART TERMINAL{/}{/}{/center}
-{center}{#A9B1D6-fg}Beautiful. Intelligent. Powerful.{/}{/center}
 
-{center}{#4ECDC4-fg}${'━'.repeat(70)}{/}{/center}
+{center}{bold}{#F8F8F2-fg}Keyboard Shortcuts{/}{/}{/center}
 
-{bold}{#FF6584-fg}TERMINAL MODE{/}{/}
 
-  {#7AA2F7-fg}Tab{/}              Show AI autocomplete suggestions
-  {#7AA2F7-fg}Shift+Enter{/}      Enter multi-line mode (perfect for Python!)
-  {#7AA2F7-fg}Enter{/}             Execute command
-  {#7AA2F7-fg}Ctrl+C{/}            Cancel current input
-  {#7AA2F7-fg}Ctrl+D{/}            Send EOF to shell
-  {#7AA2F7-fg}Ctrl+L{/}            Clear terminal
-  {#7AA2F7-fg}↑/↓{/}               Navigate command history
-  {#7AA2F7-fg}←/→{/}               Move cursor
-  {#7AA2F7-fg}Home/End{/}          Jump to start/end
-  {#7AA2F7-fg}Mouse Click{/}       Position cursor anywhere
+{#565F89-fg}GLOBAL{/}
 
-{center}{#4ECDC4-fg}${'━'.repeat(70)}{/}{/center}
+  F1                    Help
+  F2                    Editor
+  F3                    Terminal
+  F4                    Settings
+  ⌘P                    Command Palette
+  ⌘Q                    Quit
 
-{bold}{#FF6584-fg}EDITOR MODE{/}{/}
 
-  {#7AA2F7-fg}Ctrl+S{/}            Save file (prompts if new)
-  {#7AA2F7-fg}Ctrl+O{/}            Open file
-  {#7AA2F7-fg}Ctrl+Q{/}            Quit application
-  {#7AA2F7-fg}Mouse Click{/}       Position cursor
-  {#7AA2F7-fg}Scroll{/}            Navigate large files
+{#565F89-fg}TERMINAL{/}
 
-{center}{#4ECDC4-fg}${'━'.repeat(70)}{/}{/center}
+  Tab                   Autocomplete
+  Shift+Enter           Multi-line mode
+  Ctrl+C                Cancel
+  Ctrl+L                Clear
+  ↑ ↓                   History
+  Click                 Position cursor
 
-{bold}{#FF6584-fg}GLOBAL SHORTCUTS{/}{/}
 
-  {#7AA2F7-fg}F1{/}                Show this help
-  {#7AA2F7-fg}F2{/}                Switch to Editor mode
-  {#7AA2F7-fg}F3{/}                Switch to Terminal mode
-  {#7AA2F7-fg}Ctrl+P{/} or {#7AA2F7-fg}⌘P{/}    Open Command Palette
-  {#7AA2F7-fg}Ctrl+Q{/}            Quit application
+{#565F89-fg}EDITOR{/}
 
-{center}{#4ECDC4-fg}${'━'.repeat(70)}{/}{/center}
+  ⌘S                    Save
+  ⌘O                    Open
 
-{bold}{#FF6584-fg}AI AUTOCOMPLETE{/}{/}
 
-The terminal learns as you work:
+{#565F89-fg}AI AUTOCOMPLETE{/}
 
-  {#BB9AF7-fg}${ICONS.history}{/}  Command History    Recently used commands
-  {#C0CAF5-fg}${ICONS.variable}{/}  Variables          $VAR, function names, etc.
-  {#4ECDC4-fg}${ICONS.ssh}{/}  SSH Hosts          user@host, domains
-  {#7AA2F7-fg}${ICONS.command}{/}  Common Commands    ls, cd, git, npm, etc.
-  {#BB9AF7-fg}${ICONS.keyword}{/}  Python Keywords    def, class, import, etc.
+  Press Tab to see intelligent suggestions based on:
+  • Command history
+  • Variables and function names
+  • SSH hosts
+  • Common shell commands
 
-Press {#6C63FF-fg}Tab{/} to see suggestions, {#6C63FF-fg}↑/↓{/} to navigate, {#6C63FF-fg}Enter{/} to insert.
 
-{center}{#4ECDC4-fg}${'━'.repeat(70)}{/}{/center}
-
-{bold}{#FF6584-fg}MULTI-LINE MODE{/}{/}
-
-Perfect for writing Python scripts or complex commands:
-
-  1. Press {#FFD93D-fg}Shift+Enter{/} to start
-  2. Type each line, pressing {#FFD93D-fg}Shift+Enter{/} after each
-  3. Press {#95E1D3-fg}Enter{/} when done to execute all lines
-
-{center}{#4ECDC4-fg}${'━'.repeat(70)}{/}{/center}
-
-{center}{#565F89-fg}Press Escape to close this help{/}{/center}
+{center}{#565F89-fg}Esc to close{/}{/center}
     `
   });
 
