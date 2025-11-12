@@ -765,7 +765,12 @@ function updateEditorLineNumbers() {
 // PTY INITIALIZATION
 // ═══════════════════════════════════════════════════════════════════════════
 
-const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
+// Cross-platform shell detection (Windows, macOS, Linux)
+// On macOS, respects user's default shell (zsh, bash, fish, etc.)
+const shell = os.platform() === 'win32'
+  ? 'powershell.exe'
+  : (process.env.SHELL || '/bin/bash');
+
 const ptyProcess = pty.spawn(shell, [], {
   name: 'xterm-256color',
   cols: 80,

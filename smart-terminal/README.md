@@ -151,12 +151,60 @@ Muted:       #565F89  (Cool Gray)
 
 ---
 
+## 💻 Platform Support
+
+**Fully cross-platform** - Works on:
+- ✅ **macOS** (Intel & Apple Silicon) - Respects your default shell (zsh, bash, fish, etc.)
+- ✅ **Linux** (all distributions)
+- ✅ **Windows** (PowerShell)
+
+The terminal automatically detects your OS and uses the appropriate shell.
+
+---
+
 ## 🚀 Installation
+
+### macOS
 
 ```bash
 cd smart-terminal
 npm install
 ```
+
+**Note:** On macOS, you may need Xcode Command Line Tools for `node-pty` compilation:
+```bash
+xcode-select --install
+```
+
+### Linux
+
+```bash
+cd smart-terminal
+npm install
+```
+
+**Note:** On Linux, you may need build essentials:
+```bash
+# Debian/Ubuntu
+sudo apt-get install build-essential python3
+
+# Fedora/RHEL
+sudo dnf install gcc-c++ make python3
+```
+
+### Windows
+
+```bash
+cd smart-terminal
+npm install
+```
+
+**Note:** On Windows, you may need windows-build-tools:
+```powershell
+npm install --global windows-build-tools
+```
+
+---
 
 ## 🎯 Usage
 
@@ -164,7 +212,7 @@ npm install
 npm start
 ```
 
-Or make it executable:
+Or make it executable (macOS/Linux):
 
 ```bash
 chmod +x index.js
@@ -175,6 +223,8 @@ chmod +x index.js
 
 ## ⌨️ Keyboard Shortcuts
 
+**macOS Users:** Use `⌘ (Cmd)` instead of `Ctrl` for most shortcuts (e.g., `⌘+P`, `⌘+S`, `⌘+Q`)
+
 ### Global
 | Key | Action |
 |-----|--------|
@@ -183,7 +233,7 @@ chmod +x index.js
 | `F3` | Switch to Terminal mode |
 | `F4` | Settings & Experimental Features |
 | `Ctrl+P` or `⌘P` | Open Command Palette |
-| `Ctrl+Q` | Quit application |
+| `Ctrl+Q` or `⌘Q` | Quit application |
 
 ### Terminal Mode
 | Key | Action |
