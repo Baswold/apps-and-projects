@@ -92,6 +92,43 @@ The **attention to detail** that makes people say "wow!":
 
 Try running `sleep 5` and watch the magic! ✨
 
+### Micro-Interactions Everywhere ✨ **DELIGHT!**
+The **tiny details** that make you smile:
+
+**Time-Based Greeting**
+- Welcome screen shows "Good morning!", "Good afternoon!", "Good evening!", or "Burning the midnight oil!" based on time of day
+
+**Typing Indicator**
+- Live ✎ icon appears in status bar while you type
+- Fades out after 2 seconds of inactivity
+- Subtle feedback that the terminal is "listening"
+
+**Session Stats**
+- Shows how long the terminal has been open (5s, 2m, 1h30m)
+- Tracks total keystrokes (with optional sound every 5 keys)
+- Command counter in status bar
+
+**Success/Error Detection** 🎯
+- Commands that succeed: **GREEN border pulse** (mint green flash)
+- Commands that fail: **RED border pulse** (coral red flash)
+- Automatically detects error keywords (error, failed, fatal, exception, etc.)
+- Different sounds for success vs errors
+
+**Smart Animations**
+- Cursor blinks at perfect 530ms rate
+- Spinner animates at 150ms for smoothness
+- Border pulses synchronized with spinner
+- Typing indicator fades gracefully
+
+**Thoughtful Sounds** (when enabled)
+- Subtle keystroke sounds every 5 keys
+- Command execution click
+- Success completion (2 bells)
+- Error alert (3 bells)
+- Autocomplete confirmation
+
+Every interaction has been considered. Every timing perfected. Every color chosen with care. This is what makes people say: **"Wow, they thought of EVERYTHING!"**
+
 ---
 
 ## 🎨 Color Palette

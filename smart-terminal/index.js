@@ -183,6 +183,14 @@ let commandElapsedTime = 0;
 let spinnerFrame = 0;
 let spinnerColorIndex = 0;
 
+// Session stats - Attention to detail!
+let sessionStartTime = Date.now();
+let totalKeystrokes = 0;
+let totalCommands = 0;
+let lastKeystrokeTime = Date.now();
+let isTyping = false;
+let commandExitCode = null;
+
 // Performance monitoring
 let cpuUsage = 0;
 let memoryUsage = 0;
@@ -256,10 +264,15 @@ function updateStatusBar() {
     centerText = hints[mode] || '';
   }
 
-  // Right side: Stats and time
+  // Right side: Stats and time with ATTENTION TO DETAIL
   const time = new Date().toLocaleTimeString('en-US', { hour12: false });
   const historyCount = commandHistory.length;
-  const right = ` {#565F89-fg}${ICONS.history}${historyCount}  ${time}{/} `;
+  const sessionDuration = formatSessionDuration(Date.now() - sessionStartTime);
+
+  // Typing indicator - fades after 2 seconds
+  const typingIndicator = isTyping ? ' {#4ECDC4-fg}✎{/}' : '';
+
+  const right = ` {#565F89-fg}${ICONS.history}${historyCount}  ⏱${sessionDuration}${typingIndicator}  ${time}{/} `;
 
   // Calculate spacing
   const strippedLeft = stripAnsi(left);
@@ -291,6 +304,36 @@ function formatElapsedTime(ms) {
     return `${minutes}m ${seconds % 60}s`;
   } else {
     return `${seconds}s`;
+  }
+}
+
+// Helper to format session duration (more compact for status bar)
+function formatSessionDuration(ms) {
+  const seconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+
+  if (hours > 0) {
+    return `${hours}h${minutes % 60}m`;
+  } else if (minutes > 0) {
+    return `${minutes}m`;
+  } else {
+    return `${seconds}s`;
+  }
+}
+
+// Helper to get time-based greeting
+function getTimeBasedGreeting() {
+  const hour = new Date().getHours();
+
+  if (hour >= 5 && hour < 12) {
+    return 'Good morning';
+  } else if (hour >= 12 && hour < 17) {
+    return 'Good afternoon';
+  } else if (hour >= 17 && hour < 22) {
+    return 'Good evening';
+  } else {
+    return 'Burning the midnight oil';
   }
 }
 
@@ -333,13 +376,16 @@ const welcomeScreen = blessed.box({
   }
 });
 
-const welcomeContent = `
+// Dynamic welcome content with time-based greeting - ATTENTION TO DETAIL!
+function getWelcomeContent() {
+  const greeting = getTimeBasedGreeting();
+  return `
 {center}{#6C63FF-fg}╔═══════════════════════════════════════════════════════════╗{/}
 {#6C63FF-fg}║{/}                                                           {#6C63FF-fg}║{/}
 {#6C63FF-fg}║{/}            {bold}{#FF6584-fg}✨  SMART TERMINAL  ✨{/}{/}                    {#6C63FF-fg}║{/}
 {#6C63FF-fg}║{/}                                                           {#6C63FF-fg}║{/}
 {#6C63FF-fg}║{/}        {#A9B1D6-fg}Beautiful. Intelligent. Powerful.{/}               {#6C63FF-fg}║{/}
-{#6C63FF-fg}║{/}                                                           {#6C63FF-fg}║{/}
+{#6C63FF-fg}║{/}           {#95E1D3-fg}${greeting}!{/}                                 {#6C63FF-fg}║{/}
 {#6C63FF-fg}╚═══════════════════════════════════════════════════════════╝{/}{/center}
 
 {center}{#4ECDC4-fg}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{/}{/center}
@@ -363,8 +409,9 @@ const welcomeContent = `
 
 {center}{#565F89-fg}Press any key to begin your journey...{/}{/center}
 `;
+}
 
-welcomeScreen.setContent(welcomeContent);
+welcomeScreen.setContent(getWelcomeContent());
 
 // ═══════════════════════════════════════════════════════════════════════════
 // BEAUTIFUL TERMINAL BOX
@@ -739,10 +786,14 @@ ptyProcess.onData((data) => {
     terminalOutput = terminalOutput.slice(-50000);
   }
 
-  // Detect command completion
+  // Detect command completion - ATTENTION TO DETAIL!
   // Commands typically finish when output stops for a brief moment
   if (commandRunning) {
     lastOutputTime = Date.now();
+
+    // Detect error patterns in real-time
+    const errorPatterns = /error|failed|fatal|exception|cannot|denied|not found/i;
+    const hasError = errorPatterns.test(data);
 
     // Clear previous timer
     if (commandCompleteTimer) {
@@ -753,8 +804,42 @@ ptyProcess.onData((data) => {
     commandCompleteTimer = setTimeout(() => {
       if (commandRunning) {
         commandRunning = false;
-        terminalBox.style.border.fg = '#3B4261'; // Reset border color
-        SOUNDS.success();
+        totalCommands++;
+
+        // ATTENTION TO DETAIL: Success vs Error border pulse!
+        const recentOutput = terminalOutput.slice(-500);
+        const hadError = errorPatterns.test(recentOutput);
+
+        if (hadError) {
+          // RED PULSE for errors
+          let pulseCount = 0;
+          const errorPulse = setInterval(() => {
+            terminalBox.style.border.fg = pulseCount % 2 === 0 ? '#FF6B6B' : '#FF4444';
+            screen.render();
+            pulseCount++;
+            if (pulseCount > 6) {
+              clearInterval(errorPulse);
+              terminalBox.style.border.fg = '#3B4261';
+              screen.render();
+            }
+          }, 150);
+          SOUNDS.error();
+        } else {
+          // GREEN PULSE for success
+          let pulseCount = 0;
+          const successPulse = setInterval(() => {
+            terminalBox.style.border.fg = pulseCount % 2 === 0 ? '#95E1D3' : '#7BCFB8';
+            screen.render();
+            pulseCount++;
+            if (pulseCount > 4) {
+              clearInterval(successPulse);
+              terminalBox.style.border.fg = '#3B4261';
+              screen.render();
+            }
+          }, 150);
+          SOUNDS.success();
+        }
+
         updateTerminalDisplay();
       }
     }, 300);
@@ -1249,9 +1334,28 @@ screen.on('keypress', (ch, key) => {
     currentInput = currentInput.slice(0, cursorPosition) + ch + currentInput.slice(cursorPosition);
     cursorPosition++;
     historyIndex = -1;
+
+    // ATTENTION TO DETAIL: Track keystrokes and typing indicator
+    totalKeystrokes++;
+    lastKeystrokeTime = Date.now();
+    isTyping = true;
+
+    // Optional typing sound
+    if (settings.soundEffects && totalKeystrokes % 5 === 0) {
+      // Subtle sound every 5 keystrokes
+      SOUNDS.keypress();
+    }
+
     updateTerminalDisplay();
   }
 });
+
+// Fade out typing indicator after 2 seconds of no typing - ATTENTION TO DETAIL!
+setInterval(() => {
+  if (isTyping && Date.now() - lastKeystrokeTime > 2000) {
+    isTyping = false;
+  }
+}, 500);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // AUTOCOMPLETE POPUP HANDLERS
