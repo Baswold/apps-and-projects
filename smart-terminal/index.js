@@ -122,6 +122,10 @@ const SOUNDS = {
 
 let settings = { ...SETTINGS };
 
+// Beautiful loading spinners
+const SPINNERS = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+const SPINNER_COLORS = ['#6C63FF', '#7AA2F7', '#4ECDC4', '#95E1D3', '#4ECDC4', '#7AA2F7'];
+
 // Beautiful box drawing characters
 const BOX = {
   top: '─',
@@ -170,6 +174,14 @@ let completionSuggestions = [];
 let showingWelcome = true;
 let cursorBlink = true;
 let currentTheme = 'default';
+
+// Command execution state
+let commandRunning = false;
+let currentCommand = '';
+let commandStartTime = null;
+let commandElapsedTime = 0;
+let spinnerFrame = 0;
+let spinnerColorIndex = 0;
 
 // Performance monitoring
 let cpuUsage = 0;
@@ -222,13 +234,27 @@ function updateStatusBar() {
     left += ` {#FFD93D-fg}${ICONS.multiline} MULTI-LINE{/}`;
   }
 
-  // Center: Hints
-  const hints = {
-    terminal: '{#565F89-fg}Tab:Autocomplete  ⇧↵:MultiLine  ⌘P:Palette{/}',
-    editor: '{#565F89-fg}^S:Save  ^O:Open  F3:Terminal{/}',
-    welcome: '{#565F89-fg}Press any key to start...{/}',
-    palette: '{#565F89-fg}Type to search, ↵ to execute{/}'
-  };
+  // Command running indicator
+  if (commandRunning && mode === 'terminal') {
+    const spinner = SPINNERS[spinnerFrame % SPINNERS.length];
+    const spinnerColor = SPINNER_COLORS[spinnerColorIndex % SPINNER_COLORS.length];
+    const elapsed = formatElapsedTime(commandElapsedTime);
+    left += ` {#565F89-fg}│{/} {${spinnerColor}-fg}${spinner}{/} {#A9B1D6-fg}${currentCommand.slice(0, 20)}${currentCommand.length > 20 ? '...' : ''}{/} {#565F89-fg}${elapsed}{/}`;
+  }
+
+  // Center: Hints (or command status)
+  let centerText;
+  if (commandRunning && mode === 'terminal') {
+    centerText = '{#FFD93D-fg}⚡ Command executing...{/}';
+  } else {
+    const hints = {
+      terminal: '{#565F89-fg}Tab:Autocomplete  ⇧↵:MultiLine  ⌘P:Palette{/}',
+      editor: '{#565F89-fg}^S:Save  ^O:Open  F3:Terminal{/}',
+      welcome: '{#565F89-fg}Press any key to start...{/}',
+      palette: '{#565F89-fg}Type to search, ↵ to execute{/}'
+    };
+    centerText = hints[mode] || '';
+  }
 
   // Right side: Stats and time
   const time = new Date().toLocaleTimeString('en-US', { hour12: false });
@@ -236,7 +262,6 @@ function updateStatusBar() {
   const right = ` {#565F89-fg}${ICONS.history}${historyCount}  ${time}{/} `;
 
   // Calculate spacing
-  const centerText = hints[mode] || '';
   const strippedLeft = stripAnsi(left);
   const strippedCenter = stripAnsi(centerText);
   const strippedRight = stripAnsi(right);
@@ -254,8 +279,38 @@ function stripAnsi(str) {
   return str.replace(/\{[^}]*\}/g, '');
 }
 
-// Update status bar every second
-setInterval(updateStatusBar, 1000);
+// Helper to format elapsed time beautifully
+function formatElapsedTime(ms) {
+  const seconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+
+  if (hours > 0) {
+    return `${hours}h ${minutes % 60}m ${seconds % 60}s`;
+  } else if (minutes > 0) {
+    return `${minutes}m ${seconds % 60}s`;
+  } else {
+    return `${seconds}s`;
+  }
+}
+
+// Update status bar and spinner animation
+setInterval(() => {
+  if (commandRunning) {
+    spinnerFrame++;
+    if (spinnerFrame % 3 === 0) {
+      spinnerColorIndex++;
+    }
+    commandElapsedTime = Date.now() - commandStartTime;
+
+    // Pulsing border effect - cycles through purple shades
+    const pulseColors = ['#6C63FF', '#7AA2F7', '#6C63FF', '#5A52E0'];
+    const pulseIndex = Math.floor(spinnerFrame / 2) % pulseColors.length;
+    terminalBox.style.border.fg = pulseColors[pulseIndex];
+    screen.render();
+  }
+  updateStatusBar();
+}, 150); // 150ms for smooth spinner animation
 
 // ═══════════════════════════════════════════════════════════════════════════
 // BEAUTIFUL WELCOME SCREEN
@@ -672,12 +727,37 @@ const ptyProcess = pty.spawn(shell, [], {
   env: process.env
 });
 
+// Command completion detection
+let lastOutputTime = Date.now();
+let commandCompleteTimer = null;
+
 ptyProcess.onData((data) => {
   terminalOutput += data;
   extractCompletableItems(data);
 
   if (terminalOutput.length > 50000) {
     terminalOutput = terminalOutput.slice(-50000);
+  }
+
+  // Detect command completion
+  // Commands typically finish when output stops for a brief moment
+  if (commandRunning) {
+    lastOutputTime = Date.now();
+
+    // Clear previous timer
+    if (commandCompleteTimer) {
+      clearTimeout(commandCompleteTimer);
+    }
+
+    // If no output for 300ms, assume command completed
+    commandCompleteTimer = setTimeout(() => {
+      if (commandRunning) {
+        commandRunning = false;
+        terminalBox.style.border.fg = '#3B4261'; // Reset border color
+        SOUNDS.success();
+        updateTerminalDisplay();
+      }
+    }, 300);
   }
 
   updateTerminalDisplay();
@@ -1016,16 +1096,21 @@ terminalBox.key(['S-enter'], () => {
 
 terminalBox.key(['enter'], () => {
   SOUNDS.command();
+
+  let cmdToExecute = '';
+
   if (multiLineMode) {
     multiLineBuffer.push(currentInput);
     const fullCommand = multiLineBuffer.join('\n') + '\n';
+    cmdToExecute = multiLineBuffer.join(' ; ');
     ptyProcess.write(fullCommand);
-    commandHistory.push(multiLineBuffer.join(' ; '));
+    commandHistory.push(cmdToExecute);
     multiLineBuffer = [];
     multiLineMode = false;
     currentInput = '';
     cursorPosition = 0;
   } else {
+    cmdToExecute = currentInput;
     ptyProcess.write(currentInput + '\n');
     if (currentInput.trim()) {
       commandHistory.push(currentInput);
@@ -1033,6 +1118,20 @@ terminalBox.key(['enter'], () => {
     currentInput = '';
     cursorPosition = 0;
   }
+
+  // Start command execution tracking
+  if (cmdToExecute.trim()) {
+    commandRunning = true;
+    currentCommand = cmdToExecute;
+    commandStartTime = Date.now();
+    commandElapsedTime = 0;
+    spinnerFrame = 0;
+    spinnerColorIndex = 0;
+
+    // Add pulsing border effect
+    terminalBox.style.border.fg = '#6C63FF';
+  }
+
   updateTerminalDisplay();
 });
 

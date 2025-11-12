@@ -79,6 +79,19 @@ This isn't just another terminal. Every element has been crafted with obsessive 
   - Code Completion, Live Search
   - Command Stats tracking
 
+### Long-Running Command Indicators ⭐ **WOW!**
+The **attention to detail** that makes people say "wow!":
+- **Animated Spinner** - Beautiful Unicode spinner (⠋ ⠙ ⠹ ⠸) with color-cycling
+- **Elapsed Time Display** - Live timer showing exactly how long the command has been running
+- **Command Name** - Shows first 20 characters of the running command
+- **Pulsing Border** - Terminal border pulses through purple shades
+- **Status Bar Integration** - "⚡ Command executing..." indicator
+- **Auto-Detection** - Automatically detects when command completes (300ms timeout)
+- **Completion Sound** - Satisfying sound effect when command finishes
+- **Smooth Animation** - 150ms refresh rate for buttery-smooth spinner
+
+Try running `sleep 5` and watch the magic! ✨
+
 ---
 
 ## 🎨 Color Palette
@@ -220,6 +233,17 @@ The AI learns from everything you do:
 
 ### Cursor Animation
 The cursor blinks at exactly **530ms** - the sweet spot between too fast (jarring) and too slow (unresponsive). It alternates between a filled block and an underline for visual variety.
+
+### Loading Animation (The "Wow!" Moment)
+When a command is executing for a long time:
+- **Spinner**: Smooth 150ms animation cycle through 10 braille patterns
+- **Color Cycling**: Spinner color transitions through 6 beautiful shades
+- **Border Pulse**: Terminal border pulses between 4 purple shades
+- **Live Timer**: Updates every 150ms with formatted time (5s, 1m 23s, 2h 15m 30s)
+- **Smart Detection**: Automatically knows when command completes (300ms debounce)
+- **Status Integration**: Center status shows "⚡ Command executing..."
+
+This is the kind of attention to detail that makes people stop and say "wow, they thought of EVERYTHING!"
 
 ### Color-Coded Modes
 - **Terminal** - Turquoise (`#4ECDC4`)
