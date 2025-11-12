@@ -65,6 +65,20 @@ This isn't just another terminal. Every element has been crafted with obsessive 
 - **Feature Overview** - See what's possible at a glance
 - **Quick Start Guide** - Get productive immediately
 
+### Settings Menu (`F4`)
+- **Sound Effects** - Toggle terminal bell sounds for feedback
+- **20 Experimental Features** - Advanced features you can toggle:
+  - Rainbow Mode, Matrix Rain, Typewriter Effect
+  - Powerline Prompt, Git Integration
+  - Auto Suggestions (Fish-style)
+  - Fuzzy Search, Command Preview
+  - Syntax Highlighting, Editor Minimap
+  - Split Pane, Tabs, Breadcrumbs
+  - File Tree, Terminal Tabs
+  - Smart Parentheses, Auto Indent
+  - Code Completion, Live Search
+  - Command Stats tracking
+
 ---
 
 ## 🎨 Color Palette
@@ -117,6 +131,7 @@ chmod +x index.js
 | `F1` | Show help |
 | `F2` | Switch to Editor mode |
 | `F3` | Switch to Terminal mode |
+| `F4` | Settings & Experimental Features |
 | `Ctrl+P` or `⌘P` | Open Command Palette |
 | `Ctrl+Q` | Quit application |
 
@@ -301,6 +316,53 @@ Cache sizes are limited for performance:
 
 ---
 
+## 🔊 Sound Effects
+
+Optional audio feedback for a more immersive experience:
+
+- **Command Execution** - Subtle bell when running commands
+- **Autocomplete** - Confirmation sound when inserting suggestions
+- **Success** - Positive feedback for successful operations
+- **Settings Toggle** - Enabled via `F4` → Sound Effects
+
+All sounds use the terminal bell system, so they work in any environment. Toggle them on/off in settings!
+
+---
+
+## 🧪 Experimental Features
+
+Access via `F4` to toggle 20 cutting-edge features:
+
+**Visual Enhancements:**
+- Rainbow Mode - Gradient color effects
+- Matrix Rain - Falling character animation
+- Typewriter Effect - Character-by-character rendering
+
+**Terminal Features:**
+- Powerline Prompt - Stylish prompt with arrows
+- Git Integration - Show current branch
+- Auto Suggestions - Fish-shell-style inline suggestions
+- Command Preview - See output before running
+
+**Editor Features:**
+- Syntax Highlighting - Color-coded code
+- Editor Minimap - Overview sidebar
+- Smart Parentheses - Auto-close brackets
+- Auto Indent - Intelligent indentation
+- Code Completion - IntelliSense-like features
+
+**Advanced:**
+- Split Pane - Multiple terminals side-by-side
+- Tabs - Multiple files/terminals
+- File Tree - Sidebar file explorer
+- Fuzzy Search - Approximate matching
+- Live Search - Search as you type
+- Command Stats - Usage analytics
+
+⚠️ **Note:** These features are experimental and may impact performance or stability. Toggle them individually to find your perfect setup!
+
+---
+
 ## 🎁 Easter Eggs
 
 - The cursor blink rate is the golden ratio of cursor blinks (530ms)
@@ -309,6 +371,8 @@ Cache sizes are limited for performance:
 - Status bar updates exactly every 1000ms
 - Welcome screen uses double-line box drawing (╔═╗)
 - Icon selection took hours of Unicode chart browsing
+- 20 experimental features - each one carefully designed
+- Settings menu has visual toggle indicators (⬜/✅)
 
 ---
 

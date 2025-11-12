@@ -72,8 +72,55 @@ const ICONS = {
   arrow: '→',
   prompt: '▸',
   multiline: '⋮',
-  AI: '◆'
+  AI: '◆',
+  settings: '⚙',
+  sound: '🔊',
+  soundOff: '🔇',
+  experimental: '🧪',
+  toggle: '⬜',
+  toggleOn: '✅'
 };
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EXPERIMENTAL FEATURES & SETTINGS
+// ═══════════════════════════════════════════════════════════════════════════
+
+const SETTINGS = {
+  soundEffects: false,
+  experimentalFeatures: {
+    rainbowMode: false,
+    matrixRain: false,
+    typewriterEffect: false,
+    powerlinePrompt: false,
+    gitIntegration: false,
+    autoSuggestions: true,
+    fuzzySearch: false,
+    commandPreview: false,
+    syntaxHighlight: false,
+    minimap: false,
+    splitPane: false,
+    tabs: false,
+    breadcrumbs: false,
+    fileTree: false,
+    terminalTabs: false,
+    smartParentheses: false,
+    autoIndent: false,
+    codeCompletion: false,
+    liveSearch: false,
+    commandStats: false
+  }
+};
+
+// Sound effects (using terminal bell sequences)
+const SOUNDS = {
+  keypress: () => settings.soundEffects && process.stdout.write('\x07'),
+  command: () => settings.soundEffects && process.stdout.write('\x07'),
+  complete: () => settings.soundEffects && process.stdout.write('\x07\x07'),
+  error: () => settings.soundEffects && process.stdout.write('\x07\x07\x07'),
+  success: () => settings.soundEffects && process.stdout.write('\x07')
+};
+
+let settings = { ...SETTINGS };
 
 // Beautiful box drawing characters
 const BOX = {
@@ -395,11 +442,141 @@ const commandPalette = blessed.list({
     `{#7AA2F7-fg}${ICONS.file}{/}  Open File...`,
     `{#95E1D3-fg}${ICONS.saved}{/}  Save Current File`,
     `{#BB9AF7-fg}${ICONS.history}{/}  View Command History`,
+    `{#9ECE6A-fg}${ICONS.settings}{/}  Settings & Experimental Features`,
     `{#FFD93D-fg}${ICONS.info}{/}  Show Help`,
     `{#FF6B6B-fg}${ICONS.error}{/}  Clear Terminal`,
     `{#565F89-fg}⌘{/}  Close Palette`
   ]
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BEAUTIFUL SETTINGS MENU
+// ═══════════════════════════════════════════════════════════════════════════
+
+function createSettingsMenu() {
+  const settingsMenu = blessed.list({
+    parent: screen,
+    top: 'center',
+    left: 'center',
+    width: '80%',
+    height: '80%',
+    style: {
+      bg: '#1A1B26',
+      fg: '#F8F8F2',
+      border: {
+        fg: '#9ECE6A'
+      },
+      selected: {
+        bg: '#9ECE6A',
+        fg: '#1A1B26',
+        bold: true
+      }
+    },
+    border: {
+      type: 'line',
+      fg: '#9ECE6A'
+    },
+    label: {
+      text: ` ${ICONS.settings} SETTINGS & EXPERIMENTAL FEATURES `,
+      side: 'left'
+    },
+    keys: true,
+    vi: false,
+    mouse: true,
+    tags: true,
+    scrollbar: {
+      ch: '█',
+      style: {
+        bg: '#24283B',
+        fg: '#9ECE6A'
+      }
+    }
+  });
+
+  function updateSettingsItems() {
+    const items = [
+      `{center}{bold}{#9ECE6A-fg}━━━━━━━━━━━━━━━━━━ GENERAL SETTINGS ━━━━━━━━━━━━━━━━━━{/}{/}{/center}`,
+      '',
+      `${settings.soundEffects ? ICONS.toggleOn : ICONS.toggle}  {#4ECDC4-fg}Sound Effects{/}  {#565F89-fg}Terminal bell sounds for feedback{/}`,
+      '',
+      `{center}{bold}{#FF6584-fg}━━━━━━━━━━━━━━ EXPERIMENTAL FEATURES ━━━━━━━━━━━━━━{/}{/}{/center}`,
+      `{center}{#565F89-fg}⚠ Warning: These features are experimental and may be unstable{/}{/center}`,
+      '',
+      `${settings.experimentalFeatures.rainbowMode ? ICONS.toggleOn : ICONS.toggle}  {#BB9AF7-fg}${ICONS.experimental} Rainbow Mode{/}  {#565F89-fg}Colorful gradient text{/}`,
+      `${settings.experimentalFeatures.matrixRain ? ICONS.toggleOn : ICONS.toggle}  {#95E1D3-fg}${ICONS.experimental} Matrix Rain{/}  {#565F89-fg}Falling characters animation{/}`,
+      `${settings.experimentalFeatures.typewriterEffect ? ICONS.toggleOn : ICONS.toggle}  {#7AA2F7-fg}${ICONS.experimental} Typewriter Effect{/}  {#565F89-fg}Character-by-character typing{/}`,
+      `${settings.experimentalFeatures.powerlinePrompt ? ICONS.toggleOn : ICONS.toggle}  {#FFD93D-fg}${ICONS.experimental} Powerline Prompt{/}  {#565F89-fg}Fancy prompt with arrows{/}`,
+      `${settings.experimentalFeatures.gitIntegration ? ICONS.toggleOn : ICONS.toggle}  {#FF9E64-fg}${ICONS.experimental} Git Integration{/}  {#565F89-fg}Show branch in prompt{/}`,
+      `${settings.experimentalFeatures.autoSuggestions ? ICONS.toggleOn : ICONS.toggle}  {#C0CAF5-fg}${ICONS.experimental} Auto Suggestions{/}  {#565F89-fg}Fish-style suggestions{/}`,
+      `${settings.experimentalFeatures.fuzzySearch ? ICONS.toggleOn : ICONS.toggle}  {#4ECDC4-fg}${ICONS.experimental} Fuzzy Search{/}  {#565F89-fg}Approximate matching{/}`,
+      `${settings.experimentalFeatures.commandPreview ? ICONS.toggleOn : ICONS.toggle}  {#BB9AF7-fg}${ICONS.experimental} Command Preview{/}  {#565F89-fg}Show command output preview{/}`,
+      `${settings.experimentalFeatures.syntaxHighlight ? ICONS.toggleOn : ICONS.toggle}  {#9ECE6A-fg}${ICONS.experimental} Syntax Highlighting{/}  {#565F89-fg}Color code syntax{/}`,
+      `${settings.experimentalFeatures.minimap ? ICONS.toggleOn : ICONS.toggle}  {#FF6584-fg}${ICONS.experimental} Editor Minimap{/}  {#565F89-fg}Code overview sidebar{/}`,
+      `${settings.experimentalFeatures.splitPane ? ICONS.toggleOn : ICONS.toggle}  {#7AA2F7-fg}${ICONS.experimental} Split Pane{/}  {#565F89-fg}Multiple terminals side-by-side{/}`,
+      `${settings.experimentalFeatures.tabs ? ICONS.toggleOn : ICONS.toggle}  {#FFD93D-fg}${ICONS.experimental} Editor Tabs{/}  {#565F89-fg}Multiple file tabs{/}`,
+      `${settings.experimentalFeatures.breadcrumbs ? ICONS.toggleOn : ICONS.toggle}  {#95E1D3-fg}${ICONS.experimental} Breadcrumbs{/}  {#565F89-fg}Current path navigation{/}`,
+      `${settings.experimentalFeatures.fileTree ? ICONS.toggleOn : ICONS.toggle}  {#C0CAF5-fg}${ICONS.experimental} File Tree{/}  {#565F89-fg}Sidebar file explorer{/}`,
+      `${settings.experimentalFeatures.terminalTabs ? ICONS.toggleOn : ICONS.toggle}  {#4ECDC4-fg}${ICONS.experimental} Terminal Tabs{/}  {#565F89-fg}Multiple terminal sessions{/}`,
+      `${settings.experimentalFeatures.smartParentheses ? ICONS.toggleOn : ICONS.toggle}  {#BB9AF7-fg}${ICONS.experimental} Smart Parentheses{/}  {#565F89-fg}Auto-close brackets{/}`,
+      `${settings.experimentalFeatures.autoIndent ? ICONS.toggleOn : ICONS.toggle}  {#9ECE6A-fg}${ICONS.experimental} Auto Indent{/}  {#565F89-fg}Smart indentation{/}`,
+      `${settings.experimentalFeatures.codeCompletion ? ICONS.toggleOn : ICONS.toggle}  {#FF6584-fg}${ICONS.experimental} Code Completion{/}  {#565F89-fg}IntelliSense-like completion{/}`,
+      `${settings.experimentalFeatures.liveSearch ? ICONS.toggleOn : ICONS.toggle}  {#7AA2F7-fg}${ICONS.experimental} Live Search{/}  {#565F89-fg}Search as you type{/}`,
+      `${settings.experimentalFeatures.commandStats ? ICONS.toggleOn : ICONS.toggle}  {#FFD93D-fg}${ICONS.experimental} Command Stats{/}  {#565F89-fg}Track command usage{/}`,
+      '',
+      `{center}{#565F89-fg}Press Enter to toggle • Escape to close • F4 for quick access{/}{/center}`
+    ];
+
+    settingsMenu.setItems(items);
+  }
+
+  updateSettingsItems();
+
+  settingsMenu.key(['escape'], () => {
+    settingsMenu.destroy();
+    if (mode === 'editor') {
+      editorBox.focus();
+    } else {
+      terminalBox.focus();
+    }
+    screen.render();
+  });
+
+  settingsMenu.key(['enter'], () => {
+    const selected = settingsMenu.selected;
+
+    // Sound effects toggle
+    if (selected === 2) {
+      settings.soundEffects = !settings.soundEffects;
+      if (settings.soundEffects) {
+        SOUNDS.success();
+      }
+      updateSettingsItems();
+      screen.render();
+      return;
+    }
+
+    // Experimental features (starting at index 7)
+    const featureKeys = Object.keys(settings.experimentalFeatures);
+    const featureIndex = selected - 7;
+
+    if (featureIndex >= 0 && featureIndex < featureKeys.length) {
+      const featureKey = featureKeys[featureIndex];
+      settings.experimentalFeatures[featureKey] = !settings.experimentalFeatures[featureKey];
+
+      if (settings.experimentalFeatures[featureKey]) {
+        SOUNDS.success();
+      }
+
+      updateSettingsItems();
+      screen.render();
+    }
+  });
+
+  settingsMenu.focus();
+  screen.render();
+
+  return settingsMenu;
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // BEAUTIFUL EDITOR
@@ -761,6 +938,7 @@ function insertAutocomplete(index) {
   currentInput = words.join(' ');
   cursorPosition = currentInput.length;
 
+  SOUNDS.complete();
   autocompletePopup.hide();
   terminalBox.focus();
   updateTerminalDisplay();
@@ -837,6 +1015,7 @@ terminalBox.key(['S-enter'], () => {
 });
 
 terminalBox.key(['enter'], () => {
+  SOUNDS.command();
   if (multiLineMode) {
     multiLineBuffer.push(currentInput);
     const fullCommand = multiLineBuffer.join('\n') + '\n';
@@ -1186,27 +1365,38 @@ commandPalette.key(['enter'], () => {
 
   switch (selected) {
     case 0: // Terminal
+      SOUNDS.command();
       switchMode('terminal');
       break;
     case 1: // Editor
+      SOUNDS.command();
       switchMode('editor');
       break;
     case 2: // Open File
+      SOUNDS.command();
       switchMode('editor');
       editorBox.key(['C-o']);
       break;
     case 3: // Save
       if (mode === 'editor') {
+        SOUNDS.command();
         editorBox.emit('keypress', null, { full: 'C-s' });
       }
       break;
     case 4: // History
+      SOUNDS.command();
       showHistoryPanel();
       break;
-    case 5: // Help
+    case 5: // Settings
+      SOUNDS.command();
+      createSettingsMenu();
+      break;
+    case 6: // Help
+      SOUNDS.command();
       showHelpPanel();
       break;
-    case 6: // Clear
+    case 7: // Clear
+      SOUNDS.command();
       terminalOutput = '';
       switchMode('terminal');
       break;
@@ -1421,6 +1611,10 @@ screen.key(['f2'], () => {
 
 screen.key(['f3'], () => {
   switchMode('terminal');
+});
+
+screen.key(['f4'], () => {
+  createSettingsMenu();
 });
 
 screen.key(['C-p'], () => {
