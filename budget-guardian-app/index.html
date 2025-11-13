@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Guardian - Track Your Expenses</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💰 Budget Guardian</h1>
+            <p class="tagline">Stay on top of unexpected expenses and rising costs</p>
+        </header>
+
+        <div class="alert-banner" id="alertBanner" style="display: none;">
+            <span id="alertMessage"></span>
+            <button class="close-btn" onclick="closeAlert()">×</button>
+        </div>
+
+        <section class="budget-section">
+            <h2>Monthly Budget</h2>
+            <div class="budget-input-group">
+                <input type="number" id="monthlyBudget" placeholder="Enter monthly budget" min="0" step="100">
+                <button onclick="setBudget()">Set Budget</button>
+            </div>
+            <div class="budget-display">
+                <div class="budget-item">
+                    <span class="label">Budget:</span>
+                    <span class="value" id="budgetAmount">$0</span>
+                </div>
+                <div class="budget-item">
+                    <span class="label">Spent:</span>
+                    <span class="value spent" id="spentAmount">$0</span>
+                </div>
+                <div class="budget-item">
+                    <span class="label">Remaining:</span>
+                    <span class="value" id="remainingAmount">$0</span>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </section>
+
+        <section class="expense-form">
+            <h2>Add Expense</h2>
+            <form id="expenseForm">
+                <div class="form-group">
+                    <input type="text" id="expenseName" placeholder="What did you spend on?" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <input type="number" id="expenseAmount" placeholder="Amount" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <select id="expenseCategory" required>
+                            <option value="">Category</option>
+                            <option value="unexpected">💥 Unexpected</option>
+                            <option value="groceries">🛒 Groceries</option>
+                            <option value="utilities">⚡ Utilities</option>
+                            <option value="rent">🏠 Rent/Mortgage</option>
+                            <option value="medical">🏥 Medical</option>
+                            <option value="transport">🚗 Transport</option>
+                            <option value="other">📦 Other</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="add-btn">Add Expense</button>
+            </form>
+        </section>
+
+        <section class="expenses-list">
+            <div class="section-header">
+                <h2>Recent Expenses</h2>
+                <button class="clear-btn" onclick="clearAllExpenses()">Clear All</button>
+            </div>
+            <div id="expensesList" class="expenses-container">
+                <p class="empty-state">No expenses yet. Start tracking!</p>
+            </div>
+        </section>
+
+        <section class="stats-section">
+            <h2>Spending by Category</h2>
+            <div id="categoryStats" class="category-stats">
+                <p class="empty-state">Add expenses to see statistics</p>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>Built to help manage the #1 pain point: Financial stress from unexpected expenses</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
